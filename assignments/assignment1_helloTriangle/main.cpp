@@ -31,7 +31,7 @@ out vec4 FragColor;
 
 void main()
 {
-    FragColor = vec4(1.0f, 0.3f, 0.0f, 1.0f);
+    FragColor = vec4(1.0f, 0.2f, 0.7f, 1.0f);
 } 
 )";
 
@@ -56,6 +56,7 @@ int main() {
 	// VAO
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 
 	// VBO
 	unsigned int VBO;
