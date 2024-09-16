@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <fstream>
 
 #include <ew/external/glad.h>
 #include <ew/ewMath/ewMath.h>
@@ -66,70 +67,44 @@ int main() {
 	}
 	//Initialization goes here!
 
+	// Library Variable
+	Shades::Shaders shad = Shades::Shaders();
+
 	// VAO
 	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+	shad.createVAO(1, &VAO);
 
 	// VBO
 	unsigned int VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	shad.createVBO(1, &VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// Position for XYZ
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
+	shad.XYZPosition(0, 3, 7, 0);
+	
 	// Color RGBA
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(sizeof(float) * 3));
-	glEnableVertexAttribArray(1);
-
-	// Unbind Buffer
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
+	shad.XYZPosition(1, 4, 7, 3);
+	
+	// Reading files, help from https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
+	//const char* vertexShaderSource;
+	//const char* fragmentShaderSource;
+	//std::tie(vertexShaderSource, fragmentShaderSource) = shad.readFile("vertexShader.vert", "fragmentShader.frag");
 
 	// Check if Shader Compiles
-	int  success;
+	int  success = 0;
 	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s", infoLog);
-	}
+	// Vertex Shader
+	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	shad.assignShader(vertexShader, 1, vertexShaderSource, success, infoLog);
 
 	// Fragment shader
 	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	// Check if Fragment compiles
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s", infoLog);
-	}
+	shad.assignShader(fragmentShader, 1, fragmentShaderSource, success, infoLog);
 
 	// Creating a program
 	unsigned int shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	glUseProgram(shaderProgram);
-
-	// Check if the program compiles
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s", infoLog);
-	}
+	shad.createProgram(shaderProgram, vertexShader, fragmentShader, success, infoLog);
 
 	// Once the shader objects are linked to the program object, these are no longer needed
 	// Can be kept and recompiled and changed, although
