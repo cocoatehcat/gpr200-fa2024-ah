@@ -16,7 +16,7 @@ namespace Shades {
 		glEnableVertexAttribArray(index);
 	}
 
-    std::tuple<const char*, const char*> Shaders::readFile(const char* vertexPath, const char* fragmentPath)
+    std::tuple<std::string, std::string> Shaders::readFile(const char* vertexPath, const char* fragmentPath)
     {
         // 1. retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
@@ -29,8 +29,8 @@ namespace Shades {
         try
         {
             // open files
-            vShaderFile.open("\assignment1_helloTriangle\assets\vertexShader.vert"); // I am going wrong somewhere around here
-            fShaderFile.open("\assingment1_helloTriangle\assets\fragmentShader.frag");
+            vShaderFile.open(vertexPath); // I am going wrong somewhere around here
+            fShaderFile.open(fragmentPath);
             std::stringstream vShaderStream, fShaderStream;
             // read file's buffer contents into streams
             vShaderStream << vShaderFile.rdbuf();
@@ -46,10 +46,10 @@ namespace Shades {
         {
             printf("ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ");
         }
-        const char* vShaderCode = vertexCode.c_str();
-        const char* fShaderCode = fragmentCode.c_str();
+        //const char* vShaderCode = vertexCode.c_str();
+        //const char* fShaderCode = fragmentCode.c_str();
 
-        return {vShaderCode, fShaderCode};
+        return {vertexCode, fragmentCode};
     }
 
     void Shaders::assignShader(unsigned int ver, int i, const char* source, int wee, char log[]) {

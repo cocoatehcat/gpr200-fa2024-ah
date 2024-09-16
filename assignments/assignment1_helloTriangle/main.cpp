@@ -18,37 +18,6 @@ float vertices[] = {
 	 0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
 };
 
-// Compiling a shader
-const char* vertexShaderSource = R"(
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec4 aColor;
-out vec4 Color; //Varying
-uniform float uTime;
-void main()
-{
-   Color = aColor; // Pass-through
-   vec3 pos = aPos;
-   pos.y += sin(uTime * 4.0 + pos.x) / 4.0;
-   gl_Position = vec4(pos.x, pos.y, pos.z, 1.0);
-}
-)";
-
-// Fragment Shader
-const char* fragmentShaderSource = R"(
-#version 330 core
-out vec4 FragColor;
-in vec4 Color;
-uniform float uTime;
-uniform vec4 uColor = vec4(1.0);
-
-void main()
-{
-    FragColor = Color * (sin(uTime) * 0.5 + 0.5); 
-	//This is the hard code: vec4(1.0f, 0.2f, 0.7f, 1.0f);
-} 
-)";
-
 int main() {
 	printf("Initializing...");
 	if (!glfwInit()) {
@@ -86,9 +55,15 @@ int main() {
 	shad.XYZPosition(1, 4, 7, 3);
 	
 	// Reading files, help from https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
-	//const char* vertexShaderSource;
-	//const char* fragmentShaderSource;
-	//std::tie(vertexShaderSource, fragmentShaderSource) = shad.readFile("vertexShader.vert", "fragmentShader.frag");
+	std::string vertexShaderSo;
+	std::string fragmentShaderSo;
+	std::tie(vertexShaderSo, fragmentShaderSo) = shad.readFile("assets/vertexShader.vert", "assets/fragmentShader.frag");
+
+	/*std::string str = "string";
+	const char *cstr = str.c_str();*/
+
+	const char* vertexShaderSource = vertexShaderSo.c_str();
+	const char* fragmentShaderSource = fragmentShaderSo.c_str();
 
 	// Check if Shader Compiles
 	int  success = 0;
