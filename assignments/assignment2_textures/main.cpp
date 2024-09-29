@@ -13,9 +13,18 @@ const int SCREEN_HEIGHT = 720;
 
 float vertices[] = {
 	// X	 Y	   Z	 R	   G	B	  A
-	-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-	 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-	 0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top right
+	 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // bottom right
+	// -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top left
+	 //second triangle
+	// 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // bottom right
+	 -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // bottom left
+	 -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top left
+};
+
+unsigned int indices[] = {
+	0, 1, 3,
+	1, 2, 3
 };
 
 int main() {
@@ -47,6 +56,20 @@ int main() {
 	unsigned int VBO;
 	shad.createVBO(1, &VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// EBO
+	unsigned int EBO;
+	glGenBuffers(1, &EBO);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
 
 	// Position for XYZ
 	shad.XYZPosition(0, 3, 7, 0);
@@ -104,7 +127,9 @@ int main() {
 		// Binding Vertex aray and draw it
 		glBindVertexArray(VAO);
 		// Draw Call
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		glBindVertexArray(0); // let's hope this works
 
 		//Drawing happens here!
 		glfwSwapBuffers(window);
