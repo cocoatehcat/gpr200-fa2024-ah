@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <ew/external/glad.h>
+#include <ew/external/stb_image.h>
 #include <ew/ewMath/ewMath.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -12,14 +13,14 @@ const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
 
 float vertices[] = {
-	// X	 Y	   Z	 R	   G	B	  A
-	 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top right
-	 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // bottom right
+	// X	 Y	   Z	 R	   G	B	  A (removed for now)	Texture coords
+	 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,                        1.0f, 1.0f, // top right
+	 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,                       1.0f, 0.0f, // bottom right
 	// -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top left
 	 //second triangle
 	// 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // bottom right
-	 -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // bottom left
-	 -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top left
+	 -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,                      0.0f, 0.0f, // bottom left
+	 -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f,                      0.0f, 1.0f, // top left
 };
 
 unsigned int indices[] = {
@@ -70,12 +71,37 @@ int main() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
+	// Doing texture stuff
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	// set wrapping options, will test/edit later
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// Loading and generating the texture
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load("assets/brick.jpg", &width, &height, &nrChannels, 0);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		printf("Failed to load texture");
+	}
+	stbi_image_free(data);
 
 	// Position for XYZ
-	shad.XYZPosition(0, 3, 7, 0);
+	shad.XYZPosition(0, 3, 8, 0);
 	
 	// Color RGBA
-	shad.XYZPosition(1, 4, 7, 3);
+	shad.XYZPosition(1, 3, 8, 3);
+
+	// Texture positions
+	shad.XYZPosition(2, 2, 8, 6);
 	
 	// Reading files, help from https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
 	std::string vertexShaderSo;
@@ -123,6 +149,9 @@ int main() {
 		glUseProgram(shaderProgram);
 		int timeLoc = glGetUniformLocation(shaderProgram, "uTime");
 		glUniform1f(timeLoc, time);
+
+		// Binding texture
+		glBindTexture(GL_TEXTURE_2D, texture);
 
 		// Binding Vertex aray and draw it
 		glBindVertexArray(VAO);
