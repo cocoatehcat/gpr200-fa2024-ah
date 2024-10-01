@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <Shades/shaders.h>
+#include <Shades/textures.h>
 
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
@@ -34,7 +35,7 @@ int main() {
 		printf("GLFW failed to init!");
 		return 1;
 	}
-	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello Triangle", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Textures", NULL, NULL);
 	if (window == NULL) {
 		printf("GLFW failed to create window");
 		return 1;
@@ -48,6 +49,7 @@ int main() {
 
 	// Library Variable
 	Shades::Shaders shad = Shades::Shaders();
+	Texts::Textures tee = Texts::Textures();
 
 	// VAO
 	unsigned int VAO;
@@ -60,38 +62,36 @@ int main() {
 
 	// EBO
 	unsigned int EBO;
-	glGenBuffers(1, &EBO);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	tee.createEBO(1, &EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
+	// EBO positions
+	shad.XYZPosition(0, 3, 3, 0);
 
 	// Doing texture stuff
 	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	tee.genAndBind(&texture);
 
 	// set wrapping options, will test/edit later
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	tee.textParamsNear();
 
 	// Loading and generating the texture
+	stbi_set_flip_vertically_on_load(true);
 	int width, height, nrChannels;
-	unsigned char* data = stbi_load("assets/brick.jpg", &width, &height, &nrChannels, 0);
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		printf("Failed to load texture");
-	}
+
+	// Loading in data
+	unsigned char* data = stbi_load("assets/Little_Pink_Man_02.png", &width, &height, &nrChannels, 0);
+	tee.checkData(&width, &height, data);
+	stbi_image_free(data);
+
+	// Generating texture two
+	unsigned int texture2;
+	tee.genAndBind(&texture2);
+	tee.textParamsLin();
+
+	// Loading in data
+	data = stbi_load("assets/awesomeface.png", &width, &height, &nrChannels, 0);
+	tee.checkData(&width, &height, data);
 	stbi_image_free(data);
 
 	// Position for XYZ
@@ -151,7 +151,11 @@ int main() {
 		glUniform1f(timeLoc, time);
 
 		// Binding texture
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		// Binding Vertex aray and draw it
 		glBindVertexArray(VAO);
