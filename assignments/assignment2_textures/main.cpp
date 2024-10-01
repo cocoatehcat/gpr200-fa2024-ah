@@ -130,10 +130,44 @@ int main() {
 	unsigned int shaderProgram = glCreateProgram();
 	shad.createProgram(shaderProgram, vertexShader, fragmentShader, success, infoLog);
 
+	// Creating for background
+	// Reading files, help from https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
+	std::string vertexBackShaderSo;
+	std::string fragmentBackShaderSo;
+	std::tie(vertexBackShaderSo, fragmentBackShaderSo) = shad.readFile("assets/background.vert", "assets/backgroundfrag.frag");
+
+	/*std::string str = "string";
+	const char *cstr = str.c_str();*/
+
+	const char* vertexBackShaderSource = vertexBackShaderSo.c_str();
+	const char* fragmentBackShaderSource = fragmentBackShaderSo.c_str();
+
+	// Check if Shader Compiles
+	//int  success = 0;
+	//char infoLog[512];
+
+	// Vertex Shader
+	unsigned int vertexBackShader = glCreateShader(GL_VERTEX_SHADER);
+	shad.assignShader(vertexBackShader, 1, vertexBackShaderSource, success, infoLog);
+
+	// Fragment shader
+	unsigned int fragmentBackShader = glCreateShader(GL_FRAGMENT_SHADER);
+	shad.assignShader(fragmentBackShader, 1, fragmentBackShaderSource, success, infoLog);
+
+	// Creating a program
+	unsigned int shaderBackProgram = glCreateProgram();
+	shad.createProgram(shaderBackProgram, vertexBackShader, fragmentBackShader, success, infoLog);
+
+	//Setting uniforms
+	glUniform1i(glGetUniformLocation(shaderProgram, "texture"), 0);
+	glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1);
+
 	// Once the shader objects are linked to the program object, these are no longer needed
 	// Can be kept and recompiled and changed, although
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+	glDeleteShader(vertexBackShader);
+	glDeleteShader(fragmentBackShader);
 
 	//Render loop
 	while (!glfwWindowShouldClose(window)) {
@@ -144,6 +178,18 @@ int main() {
 		//Clear framebuffer
 		glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		// Knows what program to use take 2 (AKA background)
+		glUseProgram(shaderBackProgram);
+		int timeBackLoc = glGetUniformLocation(shaderBackProgram, "uTime");
+		glUniform1f(timeBackLoc, time);
+
+		// Binding texture
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		glBindVertexArray(VAO); // let's hope this works
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // draw call
 
 		// Knows what program to use
 		glUseProgram(shaderProgram);
@@ -161,8 +207,6 @@ int main() {
 		glBindVertexArray(VAO);
 		// Draw Call
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-		glBindVertexArray(0); // let's hope this works
 
 		//Drawing happens here!
 		glfwSwapBuffers(window);
