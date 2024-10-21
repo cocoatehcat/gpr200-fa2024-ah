@@ -7,6 +7,8 @@
 #include <ew/ewMath/ewMath.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <Shades/shaders.h>
 #include <Shades/textures.h>
 
@@ -51,6 +53,8 @@ int main() {
 	Shades::Shaders shad = Shades::Shaders();
 	Texts::Textures tee = Texts::Textures();
 
+
+
 	// VAO
 	unsigned int VAO;
 	shad.createVAO(1, &VAO);
@@ -84,6 +88,7 @@ int main() {
 	tee.checkData(&width, &height, data);
 	stbi_image_free(data);
 
+	/*
 	// Generating texture two
 	unsigned int texture2;
 	tee.genAndBind(&texture2);
@@ -93,6 +98,7 @@ int main() {
 	data = stbi_load("assets/awesomeface.png", &width, &height, &nrChannels, 0);
 	tee.checkData(&width, &height, data);
 	stbi_image_free(data);
+	*/
 
 	// Position for XYZ
 	shad.XYZPosition(0, 3, 8, 0);
@@ -102,6 +108,7 @@ int main() {
 
 	// Texture positions
 	shad.XYZPosition(2, 2, 8, 6);
+	
 	
 	// Reading files, help from https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
 	std::string vertexShaderSo;
@@ -130,6 +137,7 @@ int main() {
 	unsigned int shaderProgram = glCreateProgram();
 	shad.createProgram(shaderProgram, vertexShader, fragmentShader, success, infoLog);
 
+	/*
 	// Creating for background
 	// Reading files, help from https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
 	std::string vertexBackShaderSo;
@@ -137,7 +145,7 @@ int main() {
 	std::tie(vertexBackShaderSo, fragmentBackShaderSo) = shad.readFile("assets/background.vert", "assets/backgroundfrag.frag");
 
 	/*std::string str = "string";
-	const char *cstr = str.c_str();*/
+	const char *cstr = str.c_str();
 
 	const char* vertexBackShaderSource = vertexBackShaderSo.c_str();
 	const char* fragmentBackShaderSource = fragmentBackShaderSo.c_str();
@@ -157,17 +165,19 @@ int main() {
 	// Creating a program
 	unsigned int shaderBackProgram = glCreateProgram();
 	shad.createProgram(shaderBackProgram, vertexBackShader, fragmentBackShader, success, infoLog);
+	*/
+
 
 	//Setting uniforms
 	glUniform1i(glGetUniformLocation(shaderProgram, "texture"), 0);
-	glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1);
+	//glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1);
 
 	// Once the shader objects are linked to the program object, these are no longer needed
 	// Can be kept and recompiled and changed, although
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
-	glDeleteShader(vertexBackShader);
-	glDeleteShader(fragmentBackShader);
+	//glDeleteShader(vertexBackShader);
+	//glDeleteShader(fragmentBackShader);
 
 	//Render loop
 	while (!glfwWindowShouldClose(window)) {
@@ -180,13 +190,13 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Knows what program to use take 2 (AKA background)
-		glUseProgram(shaderBackProgram);
-		int timeBackLoc = glGetUniformLocation(shaderBackProgram, "uTime");
-		glUniform1f(timeBackLoc, time);
+		//glUseProgram(shaderBackProgram);
+		//int timeBackLoc = glGetUniformLocation(shaderBackProgram, "uTime");
+		//glUniform1f(timeBackLoc, time);
 
 		// Binding texture
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		//glBindTexture(GL_TEXTURE_2D, texture2);
 
 		glBindVertexArray(VAO); // let's hope this works
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // draw call
@@ -200,13 +210,42 @@ int main() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, texture2);
+
+
+		// Messing around with persepctive, replace with screen width and height later to see?
+		glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
+
+		//glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f); moving this down
+
+		// Going 3D!
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		// Making the view
+		glm::mat4 view = glm::mat4(1.0f);
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); // moving scene back to make it seems right to us
+
+		// Projection
+		glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+
+		// Retrieve uniform locations
+		unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
+		unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
+		unsigned int projLoc = glGetUniformLocation(shaderProgram, "proj");
+
+		//pass to shaders
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
+
+
 
 		// Binding Vertex aray and draw it
 		glBindVertexArray(VAO);
 		// Draw Call
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		//Drawing happens here!
 		glfwSwapBuffers(window);
