@@ -45,6 +45,14 @@ glm::vec3 cubePositions[] = {
 	glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
+glm::vec3 createPos() {
+	float x, y, z;
+	x = ew::RandomRange(-20.0f, 20.0f);
+	y = ew::RandomRange(-20.0f, 20.0f);
+	z = ew::RandomRange(-20.0f, 20.0f);
+	return glm::vec3(x, y, z);
+}
+
 int main() {
 	printf("Initializing...");
 	if (!glfwInit()) {
@@ -99,7 +107,7 @@ int main() {
 	int width, height, nrChannels;
 
 	// Loading in data
-	unsigned char* data = stbi_load("assets/awesomeface.png", &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load("assets/cactus.png", &width, &height, &nrChannels, 0);
 	tee.checkData(&width, &height, data);
 	stbi_image_free(data);
 
@@ -264,11 +272,12 @@ int main() {
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		for (unsigned int i = 0; i < 10; i++) {
+		for (unsigned int i = 0; i < 20; i++) {
 			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[i]);
+			model = glm::translate(model, createPos());
 			float angle = 20.0f * i;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			model = glm::rotate(model, glm::radians(angle) * time, createPos());
+			model = glm::scale(model, createPos());
 			unsigned int modelLoc1 = glGetUniformLocation(shaderProgram, "model");
 			glUniformMatrix4fv(modelLoc1, 1, GL_FALSE, glm::value_ptr(model));
 
@@ -282,3 +291,6 @@ int main() {
 	}
 	printf("Shutting down...");
 }
+
+
+
