@@ -9,8 +9,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
 #include <Shades/shaders.h>
 #include <Shades/textures.h>
+#include <Shades/camera.h>
 
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
@@ -74,6 +76,7 @@ int main() {
 	// Library Variable
 	Shades::Shaders shad = Shades::Shaders();
 	Texts::Textures tee = Texts::Textures();
+	cam::Camera cam = cam::Camera();
 
 	// Enabled Depth for 3D objects
 	glEnable(GL_DEPTH_TEST);
@@ -205,6 +208,8 @@ int main() {
 	//Render loop
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
+
+		cam.processInput(window);
 		// Counting number of seconds passed since the beginning
 		float time = (float)glfwGetTime();
 
@@ -252,11 +257,11 @@ int main() {
 		float radius = 10.0f;
 		float camX = static_cast<float>(sin(glfwGetTime()) * radius);
 		float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
-		view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::lookAt(cam.getPos(), cam.getPos() + cam.getFront(), cam.getUp());
 
 		// Projection
 		glm::mat4 proj = glm::mat4(1.0f);
-		proj = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+		proj = glm::perspective(glm::radians(60.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
 
 		// Retrieve uniform locations
 		//unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
