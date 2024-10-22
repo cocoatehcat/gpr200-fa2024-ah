@@ -15,6 +15,7 @@
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
 
+
 float vertices[] = {
 	// X	 Y	   Z	 R	   G	B	  A (removed for now)	Texture coords
 	 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,                        1.0f, 1.0f, // top right
@@ -29,6 +30,19 @@ float vertices[] = {
 unsigned int indices[] = {
 	0, 1, 3,
 	1, 2, 3
+};
+
+glm::vec3 cubePositions[] = {
+	glm::vec3(0.0f,  0.0f,  0.0f),
+	glm::vec3(2.0f,  5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(-3.8f, -2.0f, -12.3f),
+	glm::vec3(2.4f, -0.4f, -3.5f),
+	glm::vec3(-1.7f,  3.0f, -7.5f),
+	glm::vec3(1.3f, -2.0f, -2.5f),
+	glm::vec3(1.5f,  2.0f, -2.5f),
+	glm::vec3(1.5f,  0.2f, -1.5f),
+	glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
 int main() {
@@ -53,7 +67,8 @@ int main() {
 	Shades::Shaders shad = Shades::Shaders();
 	Texts::Textures tee = Texts::Textures();
 
-
+	// Enabled Depth for 3D objects
+	glEnable(GL_DEPTH_TEST);
 
 	// VAO
 	unsigned int VAO;
@@ -84,7 +99,7 @@ int main() {
 	int width, height, nrChannels;
 
 	// Loading in data
-	unsigned char* data = stbi_load("assets/Little_Pink_Man_02.png", &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load("assets/awesomeface.png", &width, &height, &nrChannels, 0);
 	tee.checkData(&width, &height, data);
 	stbi_image_free(data);
 
@@ -95,7 +110,7 @@ int main() {
 	tee.textParamsLin();
 
 	// Loading in data
-	data = stbi_load("assets/awesomeface.png", &width, &height, &nrChannels, 0);
+	data = stbi_load("assets/Little_Pink_Man_02.png", &width, &height, &nrChannels, 0);
 	tee.checkData(&width, &height, data);
 	stbi_image_free(data);
 	*/
@@ -187,7 +202,7 @@ int main() {
 
 		//Clear framebuffer
 		glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Knows what program to use take 2 (AKA background)
 		//glUseProgram(shaderBackProgram);
@@ -198,8 +213,8 @@ int main() {
 		glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_2D, texture2);
 
-		glBindVertexArray(VAO); // let's hope this works
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // draw call
+		//glBindVertexArray(VAO); // let's hope this works
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // draw call
 
 		// Knows what program to use
 		glUseProgram(shaderProgram);
@@ -215,20 +230,21 @@ int main() {
 
 
 		// Messing around with persepctive, replace with screen width and height later to see?
-		glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
+		//glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
 
 		//glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f); moving this down
 
 		// Going 3D!
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
 
 		// Making the view
 		glm::mat4 view = glm::mat4(1.0f);
 		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); // moving scene back to make it seems right to us
 
 		// Projection
-		glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 proj = glm::mat4(1.0f);
+		proj = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
 
 		// Retrieve uniform locations
 		unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
@@ -237,7 +253,7 @@ int main() {
 
 		//pass to shaders
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
 
@@ -246,6 +262,20 @@ int main() {
 		glBindVertexArray(VAO);
 		// Draw Call
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		for (unsigned int i = 0; i < 10; i++) {
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			unsigned int modelLoc1 = glGetUniformLocation(shaderProgram, "model");
+			glUniformMatrix4fv(modelLoc1, 1, GL_FALSE, glm::value_ptr(model));
+
+			// DRAW THE SUCKERS
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		}
 
 		//Drawing happens here!
 		glfwSwapBuffers(window);
