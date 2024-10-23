@@ -47,14 +47,6 @@ glm::vec3 cubePositions[] = {
 	glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
-glm::vec3 createPos() {
-	float x, y, z;
-	x = ew::RandomRange(-20.0f, 20.0f);
-	y = ew::RandomRange(-20.0f, 20.0f);
-	z = ew::RandomRange(-20.0f, 20.0f);
-	return glm::vec3(x, y, z);
-}
-
 int main() {
 	printf("Initializing...");
 	if (!glfwInit()) {
@@ -77,6 +69,14 @@ int main() {
 	Shades::Shaders shad = Shades::Shaders();
 	Texts::Textures tee = Texts::Textures();
 	cam::Camera cam = cam::Camera();
+
+	// Mouse controls
+	glfwMakeContextCurrent(window);
+	glfwSetCursorPosCallback(window, cam.mouse_callback(window, );
+	glfwSetScrollCallback(window, scroll_callback); // how are these supposed to work?
+
+	// tell GLFW to capture our mouse
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Enabled Depth for 3D objects
 	glEnable(GL_DEPTH_TEST);
@@ -114,18 +114,6 @@ int main() {
 	tee.checkData(&width, &height, data);
 	stbi_image_free(data);
 
-	/*
-	// Generating texture two
-	unsigned int texture2;
-	tee.genAndBind(&texture2);
-	tee.textParamsLin();
-
-	// Loading in data
-	data = stbi_load("assets/Little_Pink_Man_02.png", &width, &height, &nrChannels, 0);
-	tee.checkData(&width, &height, data);
-	stbi_image_free(data);
-	*/
-
 	// Position for XYZ
 	shad.XYZPosition(0, 3, 8, 0);
 	
@@ -140,9 +128,6 @@ int main() {
 	std::string vertexShaderSo;
 	std::string fragmentShaderSo;
 	std::tie(vertexShaderSo, fragmentShaderSo) = shad.readFile("assets/vertexShader.vert", "assets/fragmentShader.frag");
-
-	/*std::string str = "string";
-	const char *cstr = str.c_str();*/
 
 	const char* vertexShaderSource = vertexShaderSo.c_str();
 	const char* fragmentShaderSource = fragmentShaderSo.c_str();
@@ -163,47 +148,13 @@ int main() {
 	unsigned int shaderProgram = glCreateProgram();
 	shad.createProgram(shaderProgram, vertexShader, fragmentShader, success, infoLog);
 
-	/*
-	// Creating for background
-	// Reading files, help from https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
-	std::string vertexBackShaderSo;
-	std::string fragmentBackShaderSo;
-	std::tie(vertexBackShaderSo, fragmentBackShaderSo) = shad.readFile("assets/background.vert", "assets/backgroundfrag.frag");
-
-	/*std::string str = "string";
-	const char *cstr = str.c_str();
-
-	const char* vertexBackShaderSource = vertexBackShaderSo.c_str();
-	const char* fragmentBackShaderSource = fragmentBackShaderSo.c_str();
-
-	// Check if Shader Compiles
-	//int  success = 0;
-	//char infoLog[512];
-
-	// Vertex Shader
-	unsigned int vertexBackShader = glCreateShader(GL_VERTEX_SHADER);
-	shad.assignShader(vertexBackShader, 1, vertexBackShaderSource, success, infoLog);
-
-	// Fragment shader
-	unsigned int fragmentBackShader = glCreateShader(GL_FRAGMENT_SHADER);
-	shad.assignShader(fragmentBackShader, 1, fragmentBackShaderSource, success, infoLog);
-
-	// Creating a program
-	unsigned int shaderBackProgram = glCreateProgram();
-	shad.createProgram(shaderBackProgram, vertexBackShader, fragmentBackShader, success, infoLog);
-	*/
-
-
 	//Setting uniforms
 	glUniform1i(glGetUniformLocation(shaderProgram, "texture"), 0);
-	//glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1);
 
 	// Once the shader objects are linked to the program object, these are no longer needed
 	// Can be kept and recompiled and changed, although
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
-	//glDeleteShader(vertexBackShader);
-	//glDeleteShader(fragmentBackShader);
 
 	//Render loop
 	while (!glfwWindowShouldClose(window)) {
@@ -217,17 +168,9 @@ int main() {
 		glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Knows what program to use take 2 (AKA background)
-		//glUseProgram(shaderBackProgram);
-		//int timeBackLoc = glGetUniformLocation(shaderBackProgram, "uTime");
-		//glUniform1f(timeBackLoc, time);
-
 		// Binding texture
 		glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_2D, texture2);
-
-		//glBindVertexArray(VAO); // let's hope this works
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // draw call
 
 		// Knows what program to use
 		glUseProgram(shaderProgram);
@@ -237,10 +180,6 @@ int main() {
 		// Binding texture
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
-
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, texture2);
-
 
 		// Messing around with persepctive, replace with screen width and height later to see?
 		//glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
@@ -261,7 +200,7 @@ int main() {
 
 		// Projection
 		glm::mat4 proj = glm::mat4(1.0f);
-		proj = glm::perspective(glm::radians(60.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
+		proj = glm::perspective(glm::radians(cam.getFOV()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
 
 		// Retrieve uniform locations
 		//unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
@@ -273,20 +212,19 @@ int main() {
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
-
-
 		// Binding Vertex aray and draw it
 		glBindVertexArray(VAO);
 		// Draw Call
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
 
 		for (unsigned int i = 0; i < 10; i++) { //change to 20 later
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
 			float angle = 20.0f * i;
-			model = glm::rotate(model, glm::radians(angle) * time, createPos());
-			model = glm::scale(model, createPos());
+			model = glm::rotate(model, glm::radians(angle) * time, cam.createPos());
+			model = glm::scale(model, cam.createPos());
 			unsigned int modelLoc1 = glGetUniformLocation(shaderProgram, "model");
 			glUniformMatrix4fv(modelLoc1, 1, GL_FALSE, glm::value_ptr(model));
 
