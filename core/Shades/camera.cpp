@@ -1,12 +1,15 @@
 #include "camera.h"
 
 namespace cam {
-	void Camera::processInput(GLFWwindow* window) {
+	void Camera::processInput(GLFWwindow* window, float dt) {
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, true);
 		}
 
-		const float cameraSpeed = 0.05f; // can be adjusted
+		float cameraSpeed = 10.0f * dt; // can be adjusted
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+			cameraSpeed *= 2;
+		}
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			cameraPos += cameraSpeed * cameraFront;
 		}
@@ -19,9 +22,6 @@ namespace cam {
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; 
 		}
-		//if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) { // Figure this out more later
-		//	cameraPos += cameraSpeed * 2;
-		//}
 		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
 			cameraPos += glm::normalize(glm::cross(cameraFront, cameraRight)) * cameraSpeed;
 		}
@@ -33,9 +33,9 @@ namespace cam {
 	// Function to create a random vec3
 	glm::vec3 Camera::createPos() {
 		float x, y, z;
-		x = ew::RandomRange(-20.0f, 20.0f);
-		y = ew::RandomRange(-20.0f, 20.0f);
-		z = ew::RandomRange(-20.0f, 20.0f);
+		x = ew::RandomRange(-10.0f, 10.0f);
+		y = ew::RandomRange(-10.0f, 10.0f);
+		z = ew::RandomRange(-10.0f, 10.0f);
 		return glm::vec3(x, y, z);
 	}
 
@@ -57,7 +57,7 @@ namespace cam {
 
 		float sensitivity = 0.1f;
 		xoffset *= sensitivity;
-		yoffset += sensitivity;
+		yoffset *= sensitivity;
 
 		yaw += xoffset;
 		pitch += yoffset;
@@ -75,6 +75,7 @@ namespace cam {
 		direction.y = sin(glm::radians(pitch));
 		direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 		cameraFront = glm::normalize(direction);
+		cameraRight = glm::normalize(glm::cross(cameraUp, cameraFront)); // look into more
 	}
 
 	// Making it zoom

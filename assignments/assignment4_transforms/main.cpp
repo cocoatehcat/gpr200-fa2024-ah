@@ -17,7 +17,17 @@
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
 
+cam::Camera camera = cam::Camera();
 
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
+	camera.mouse_callback(window, xposIn, yposIn);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	camera.scroll_callback(window, xoffset, yoffset);
+}
+
+/*
 float vertices[] = {
 	// X	 Y	   Z	 R	   G	B	  A (removed for now)	Texture coords
 	 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,                        1.0f, 1.0f, // top right
@@ -27,6 +37,50 @@ float vertices[] = {
 	// 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // bottom right
 	 -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,                      0.0f, 0.0f, // bottom left
 	 -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f,                      0.0f, 1.0f, // top left
+}; */
+
+float vertices[] = {
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
 unsigned int indices[] = {
@@ -35,16 +89,27 @@ unsigned int indices[] = {
 };
 
 glm::vec3 cubePositions[] = {
-	glm::vec3(0.0f,  0.0f,  0.0f),
-	glm::vec3(2.0f,  5.0f, -15.0f),
-	glm::vec3(-1.5f, -2.2f, -2.5f),
-	glm::vec3(-3.8f, -2.0f, -12.3f),
-	glm::vec3(2.4f, -0.4f, -3.5f),
-	glm::vec3(-1.7f,  3.0f, -7.5f),
-	glm::vec3(1.3f, -2.0f, -2.5f),
-	glm::vec3(1.5f,  2.0f, -2.5f),
-	glm::vec3(1.5f,  0.2f, -1.5f),
-	glm::vec3(-1.3f,  1.0f, -1.5f)
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
+	glm::vec3(camera.createPos()),
 };
 
 int main() {
@@ -68,11 +133,10 @@ int main() {
 	// Library Variable
 	Shades::Shaders shad = Shades::Shaders();
 	Texts::Textures tee = Texts::Textures();
-	cam::Camera cam = cam::Camera();
 
 	// Mouse controls
 	glfwMakeContextCurrent(window);
-	glfwSetCursorPosCallback(window, cam.mouse_callback(window, );
+	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback); // how are these supposed to work?
 
 	// tell GLFW to capture our mouse
@@ -115,13 +179,13 @@ int main() {
 	stbi_image_free(data);
 
 	// Position for XYZ
-	shad.XYZPosition(0, 3, 8, 0);
+	shad.XYZPosition(0, 3, 5, 0);
 	
 	// Color RGBA
-	shad.XYZPosition(1, 3, 8, 3);
+	shad.XYZPosition(1, 2, 5, 3);
 
 	// Texture positions
-	shad.XYZPosition(2, 2, 8, 6);
+	//shad.XYZPosition(2, 2, 8, 6);
 	
 	
 	// Reading files, help from https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
@@ -156,13 +220,23 @@ int main() {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
+	float prevTime = 0;
+
+	glm::vec3 rotate = camera.createPos();
+
 	//Render loop
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
-		cam.processInput(window);
 		// Counting number of seconds passed since the beginning
 		float time = (float)glfwGetTime();
+
+		float deltaTime = time - prevTime;
+
+		prevTime = time;
+
+		// Getting input
+		camera.processInput(window, deltaTime);
 
 		//Clear framebuffer
 		glClearColor(0.3f, 0.4f, 0.9f, 1.0f);
@@ -196,11 +270,11 @@ int main() {
 		float radius = 10.0f;
 		float camX = static_cast<float>(sin(glfwGetTime()) * radius);
 		float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
-		view = glm::lookAt(cam.getPos(), cam.getPos() + cam.getFront(), cam.getUp());
+		view = glm::lookAt(camera.getPos(), camera.getPos() + camera.getFront(), camera.getUp());
 
 		// Projection
 		glm::mat4 proj = glm::mat4(1.0f);
-		proj = glm::perspective(glm::radians(cam.getFOV()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
+		proj = glm::perspective(glm::radians(camera.getFOV()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 1000.0f);
 
 		// Retrieve uniform locations
 		//unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
@@ -216,21 +290,21 @@ int main() {
 		glBindVertexArray(VAO);
 		// Draw Call
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
-		for (unsigned int i = 0; i < 10; i++) { //change to 20 later
+		for (unsigned int i = 0; i < 20; i++) { //change to 20 later
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
 			float angle = 20.0f * i;
-			model = glm::rotate(model, glm::radians(angle) * time, cam.createPos());
-			model = glm::scale(model, cam.createPos());
+			model = glm::rotate(model, glm::radians(angle) * time, rotate);
+			model = glm::scale(model, cubePositions[i]);
 			unsigned int modelLoc1 = glGetUniformLocation(shaderProgram, "model");
 			glUniformMatrix4fv(modelLoc1, 1, GL_FALSE, glm::value_ptr(model));
 
 			// DRAW THE SUCKERS
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
+			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
 		//Drawing happens here!

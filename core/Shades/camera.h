@@ -11,7 +11,7 @@
 namespace cam {
 	class Camera {
 	public:
-		void processInput(GLFWwindow* window);
+		void processInput(GLFWwindow* window, float dt);
 		glm::vec3 createPos();
 		void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 		void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
