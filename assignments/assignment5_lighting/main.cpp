@@ -14,6 +14,11 @@
 #include <Shades/textures.h>
 #include <Shades/camera.h>
 
+// IMGUI
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
 
@@ -128,6 +133,13 @@ int main() {
 		printf("GLAD Failed to load GL headers");
 		return 1;
 	}
+
+	//Initialize ImGUI
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init();
+	 
 	//Initialization goes here!
 
 	// Library Variable
@@ -306,6 +318,20 @@ int main() {
 			//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
+
+		// IMGUI test
+		ImGui_ImplGlfw_NewFrame();
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui::NewFrame();
+
+		//Create settings window
+		ImGui::Begin("Settings");
+		ImGui::Text("Add Controls Here!");
+		ImGui::End();
+
+		// Actually rendering it
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		//Drawing happens here!
 		glfwSwapBuffers(window);
