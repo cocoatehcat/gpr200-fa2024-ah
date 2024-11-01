@@ -28,6 +28,7 @@ namespace cam {
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
 			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraRight)) * cameraSpeed;
 		}
+		
 	}
 
 	// Function to create a random vec3

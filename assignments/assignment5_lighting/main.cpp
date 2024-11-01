@@ -32,6 +32,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	camera.scroll_callback(window, xoffset, yoffset); 
 }
 
+// Lighting
+glm::vec3 lightPos(1.0f, 1.0f, 1.0f);
+
 /*
 float vertices[] = {
 	// X	 Y	   Z	 R	   G	B	  A (removed for now)	Texture coords
@@ -123,7 +126,7 @@ int main() {
 		printf("GLFW failed to init!");
 		return 1;
 	}
-	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Textures", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Lighting", NULL, NULL);
 	if (window == NULL) {
 		printf("GLFW failed to create window");
 		return 1;
@@ -149,7 +152,7 @@ int main() {
 	// Mouse controls
 	glfwMakeContextCurrent(window);
 	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback); // how are these supposed to work?
+	glfwSetScrollCallback(window, scroll_callback);
 
 	// tell GLFW to capture our mouse
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -160,11 +163,26 @@ int main() {
 	// VAO
 	unsigned int VAO;
 	shad.createVAO(1, &VAO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// Position for XYZ
+	//shad.XYZPosition(0, 3, 5, 0);
+
+	// Color RGBA
+	//shad.XYZPosition(1, 2, 5, 3);
 
 	// VBO
 	unsigned int VBO;
 	shad.createVBO(1, &VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// Light Cube VAO
+	unsigned int lightVAO;
+	shad.createVAO(1, &lightVAO);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
 	// EBO
 	unsigned int EBO;
@@ -191,10 +209,10 @@ int main() {
 	stbi_image_free(data);
 
 	// Position for XYZ
-	shad.XYZPosition(0, 3, 5, 0);
+	//shad.XYZPosition(0, 3, 5, 0);
 	
 	// Color RGBA
-	shad.XYZPosition(1, 2, 5, 3);
+	//shad.XYZPosition(1, 2, 5, 3);
 
 	// Texture positions
 	//shad.XYZPosition(2, 2, 8, 6);
@@ -224,8 +242,32 @@ int main() {
 	unsigned int shaderProgram = glCreateProgram();
 	shad.createProgram(shaderProgram, vertexShader, fragmentShader, success, infoLog);
 
+
+	// Testing this out for lighting
+	// Reading files, help from https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
+	std::string vertexLightShaderSo;
+	std::string fragmentLightShaderSo;
+	std::tie(vertexLightShaderSo, fragmentLightShaderSo) = shad.readFile("assets/lightvert.vert", "assets/lightfrag.frag");
+
+	const char* vertexLightShaderSource = vertexLightShaderSo.c_str();
+	const char* fragmentLightShaderSource = fragmentLightShaderSo.c_str();
+
+	// Check if Shader Compiles
+
+	// Vertex Shader
+	unsigned int vertexLightShader = glCreateShader(GL_VERTEX_SHADER);
+	shad.assignShader(vertexLightShader, 1, vertexLightShaderSource, success, infoLog);
+
+	// Fragment shader
+	unsigned int fragmentLightShader = glCreateShader(GL_FRAGMENT_SHADER);
+	shad.assignShader(fragmentLightShader, 1, fragmentLightShaderSource, success, infoLog);
+
+	// Creating a program
+	unsigned int shaderLightProgram = glCreateProgram();
+	shad.createProgram(shaderLightProgram, vertexLightShader, fragmentLightShader, success, infoLog);
+
 	//Setting uniforms
-	glUniform1i(glGetUniformLocation(shaderProgram, "texture"), 0);
+	//glUniform1i(glGetUniformLocation(shaderProgram, "texture"), 0);
 
 	// Once the shader objects are linked to the program object, these are no longer needed
 	// Can be kept and recompiled and changed, although
@@ -260,6 +302,8 @@ int main() {
 
 		// Knows what program to use
 		glUseProgram(shaderProgram);
+
+		// Time
 		int timeLoc = glGetUniformLocation(shaderProgram, "uTime");
 		glUniform1f(timeLoc, time);
 
@@ -319,6 +363,29 @@ int main() {
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
+		// Making Light cube!
+		glUseProgram(shaderLightProgram);
+
+		// Projection
+		unsigned int projLoc1 = glGetUniformLocation(shaderLightProgram, "proj");
+		glUniformMatrix4fv(projLoc1, 1, GL_FALSE, glm::value_ptr(proj));
+
+		// Set view
+		unsigned int viewLoc1 = glGetUniformLocation(shaderLightProgram, "view");
+		glUniformMatrix4fv(viewLoc1, 1, GL_FALSE, &view[0][0]);
+
+		// Setting up model
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f));
+		unsigned int modelLoc = glGetUniformLocation(shaderLightProgram, "model");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+		//binding and displaying cube
+		glBindVertexArray(lightVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
 		// IMGUI test
 		ImGui_ImplGlfw_NewFrame();
 		ImGui_ImplOpenGL3_NewFrame();
@@ -326,12 +393,30 @@ int main() {
 
 		//Create settings window
 		ImGui::Begin("Settings");
-		ImGui::Text("Add Controls Here!");
+		ImGui::Text("Light Position");
 		ImGui::End();
 
 		// Actually rendering it
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		//glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2); //Returns GLFW_PRESS or GLFW_RELEASE
+
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); //Unlocks
+		//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); //Locks
+
+		bool mouseON = false;
+
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
+			mouseON = true;
+			while (mouseON == true) {
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
+					mouseON = false;
+				}
+			}
+			
+		}
 
 		//Drawing happens here!
 		glfwSwapBuffers(window);
