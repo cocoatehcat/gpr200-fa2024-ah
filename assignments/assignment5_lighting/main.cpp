@@ -163,25 +163,26 @@ int main() {
 	// VAO
 	unsigned int VAO;
 	shad.createVAO(1, &VAO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
 
-	// Position for XYZ
-	//shad.XYZPosition(0, 3, 5, 0);
-
-	// Color RGBA
-	//shad.XYZPosition(1, 2, 5, 3);
+	
 
 	// VBO
 	unsigned int VBO;
 	shad.createVBO(1, &VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+	// Position for XYZ
+	shad.XYZPosition(0, 3, 5, 0);
+
+	// Color RGBA
+	shad.XYZPosition(1, 2, 5, 3);
+
 	// Light Cube VAO
 	unsigned int lightVAO;
 	shad.createVAO(1, &lightVAO);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	// For Light
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	// EBO
