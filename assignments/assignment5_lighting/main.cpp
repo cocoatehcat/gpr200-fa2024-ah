@@ -185,6 +185,8 @@ int main() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
+	shad.XYZPosition(1, 2, 5, 3);
+
 	// EBO
 	unsigned int EBO;
 	tee.createEBO(1, &EBO);
@@ -311,6 +313,10 @@ int main() {
 		// Binding texture
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
+
+		// Light Uniform
+		int lightCol = glGetUniformLocation(shaderProgram, "lightColor");
+		glUniform3f(lightCol, 1.0f, 1.0f, 0.5f);
 
 		// Messing around with persepctive, replace with screen width and height later to see?
 		//glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
