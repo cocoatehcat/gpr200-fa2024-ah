@@ -9,6 +9,6 @@ namespace Texts {
 		void genAndBind(unsigned int* texts);
 		void textParamsNear();
 		void textParamsLin();
-		void checkData(int* x, int* y, unsigned char* dat, int ID);
+		void checkData(int* x, int* y, unsigned char* dat, unsigned int *ID);
 	};
 }

@@ -208,7 +208,7 @@ int main() {
 
 	// Loading in data
 	unsigned char* data = stbi_load("assets/cactus.png", &width, &height, &nrChannels, 0);
-	tee.checkData(&width, &height, data, texture);
+	tee.checkData(&width, &height, data, &texture);
 	
 
 	// set wrapping options, will test/edit later
@@ -285,7 +285,7 @@ int main() {
 
 	// Binding texture (let's hope this works)
 	int textureTest = glGetUniformLocation(shaderProgram, "ourTexture");
-	glUniform1i(textureTest, 1);
+	glUniform1i(textureTest, 0);
 
 	float prevTime = 0;
 

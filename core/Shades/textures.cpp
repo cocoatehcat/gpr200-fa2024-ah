@@ -8,7 +8,7 @@ namespace Texts {
 
 	void Textures::genAndBind(unsigned int *texts) {
 		glGenTextures(0, texts);
-		glBindTexture(GL_TEXTURE_2D, *texts);
+		//glBindTexture(GL_TEXTURE_2D, *texts);
 	}
 
 	void Textures::textParamsNear() {
@@ -25,9 +25,9 @@ namespace Texts {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 
-	void Textures::checkData(int* x, int* y, unsigned char* dat, int ID) {
+	void Textures::checkData(int* x, int* y, unsigned char* dat, unsigned int *ID) {
 		if (dat) {
-			glBindTexture(GL_TEXTURE_2D, ID);
+			glBindTexture(GL_TEXTURE_2D, *ID);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, *x, *y, 0, GL_RGBA, GL_UNSIGNED_BYTE, dat);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
