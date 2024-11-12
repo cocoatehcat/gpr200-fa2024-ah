@@ -12,8 +12,9 @@ namespace Shades {
 	}	
 
 	void Shaders::XYZPosition(int index, GLint in2, int length, int voidNum) {
+        glEnableVertexAttribArray(index);
 		glVertexAttribPointer(index, in2, GL_FLOAT, GL_FALSE, length * sizeof(float), (void*)(sizeof(float) * voidNum));
-		glEnableVertexAttribArray(index);
+		
 	}
 
     std::tuple<std::string, std::string> Shaders::readFile(const char* vertexPath, const char* fragmentPath)
