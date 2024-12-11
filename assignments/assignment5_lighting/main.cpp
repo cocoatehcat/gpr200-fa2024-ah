@@ -291,6 +291,13 @@ int main() {
 
 	glm::vec3 rotate = camera.createPos();
 
+	// Light floats
+	float lightColor = (1.0f, 1.0f, 1.0f);
+	float lightMove = (1.0f, 1.0f, 1.0f);
+	float ambiMove = 0.1f;
+	float specMove = 0.5f;
+	int shineMove = 2;
+
 	//Render loop
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -320,17 +327,25 @@ int main() {
 		int timeLoc = glGetUniformLocation(shaderProgram, "uTime");
 		glUniform1f(timeLoc, time);
 
-		
-
 		// Light Uniform
 		int lightCol = glGetUniformLocation(shaderProgram, "lightColor");
-		glUniform3f(lightCol, 1.0f, 1.0f, 1.0f);
+		glUniform3fv(lightCol, 1, &lightColor);
 
 		int lightPosition = glGetUniformLocation(shaderProgram, "lightPos");
-		glUniform3f(lightPosition, 1.0f, 1.0f, 1.0f); // coords for the lightPos vector. Should change to be more efficent later
+		glUniform3fv(lightPosition, 1, &lightMove); // coords for the lightPos vector. Should change to be more efficent later (later me changed them)
 
 		int viewPosi = glGetUniformLocation(shaderProgram, "viewPos");
 		glUniform3fv(viewPosi, 1, &camera.cameraPos[0]);
+
+		// ImGUI mathy stuff
+		int ambiStrength = glGetUniformLocation(shaderProgram, "ambientStrength");
+		glUniform3fv(ambiStrength, 1, &ambiMove); // should affect the ambient part of the lights
+
+		int specStrength = glGetUniformLocation(shaderProgram, "specularStrength");
+		glUniform3fv(specStrength, 1, &specMove); // should affect the specular part of the lights
+
+		int shineStrength = glGetUniformLocation(shaderProgram, "shine");
+		glUniform3iv(shineStrength, 1, &shineMove); // shininess!
 
 		// Messing around with persepctive, replace with screen width and height later to see?
 		//glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
@@ -419,7 +434,12 @@ int main() {
 
 		//Create settings window
 		ImGui::Begin("Settings");
-		ImGui::Text("Light Position");
+		ImGui::DragFloat3("Light Position", (float*)&lightMove, 0.1f);
+		ImGui::ColorEdit3("LightColor", (float*)&lightColor);
+		ImGui::SliderFloat("Ambient K", (float*)&ambiMove, 0.0f, 1.0f);
+		ImGui::Text("Diffuse");
+		ImGui::SliderFloat("Specular", (float*)&specMove, 0.0f, 1.0f);
+		ImGui::SliderInt("Shininess", (int*)&shineMove, 2, 1024);
 		ImGui::End();
 
 		// Actually rendering it

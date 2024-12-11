@@ -15,6 +15,11 @@ uniform vec3 lightColor;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 
+// we testing boys
+uniform float ambientStrength;
+uniform float specularStrength;
+uniform int shine;
+
 void main()
 {
 	vec4 texColor = texture(ourTexture, TexCoord);
@@ -22,7 +27,7 @@ void main()
 		discard;
 	}
 
-	float ambientStrength = 0.1;
+	//float ambientStrength = 0.1;
 	vec3 ambient = ambientStrength * lightColor;
 
 	vec3 norm = normalize(Normal);
@@ -31,10 +36,12 @@ void main()
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = diff * lightColor;
 
-	float specularStrength = 0.5;
+	//float specularStrength = 0.5;
 	vec3 viewDir = normalize(viewPos - FragPos);
-	vec3 reflectDir = reflect(-lightDir, norm);
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+	//vec3 reflectDir = reflect(-lightDir, norm);
+	// Changed to Blinn-Phong
+	vec3 halfDir = normalize(lightDir + viewDir);
+	float spec = pow(max(dot(norm, halfDir), 0.0), shine);
 	vec3 specular = specularStrength * spec * lightColor;
 
 	vec4 result = vec4(ambient + diffuse + specular, 1.0) * texColor;
