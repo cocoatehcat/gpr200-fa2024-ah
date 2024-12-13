@@ -200,7 +200,6 @@ int main() {
 
 	// Doing texture stuff
 	unsigned int texture;
-	tee.genAndBind(&texture);
 
 	// Loading and generating the texture
 	stbi_set_flip_vertically_on_load(true);
@@ -208,11 +207,14 @@ int main() {
 
 	// Loading in data
 	unsigned char* data = stbi_load("assets/cactus.png", &width, &height, &nrChannels, 0);
+	tee.genAndBind(&texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	tee.textParamsNear();
 	tee.checkData(&width, &height, data, &texture);
 	
 
 	// set wrapping options, will test/edit later
-	tee.textParamsNear();
+	
 
 	// Free data
 	stbi_image_free(data);
@@ -296,6 +298,7 @@ int main() {
 	float lightMove = (1.0f, 1.0f, 1.0f);
 	float ambiMove = 0.1f;
 	float specMove = 0.5f;
+	float diffMove = 0.5f;
 	int shineMove = 2;
 
 	//Render loop
@@ -339,13 +342,16 @@ int main() {
 
 		// ImGUI mathy stuff
 		int ambiStrength = glGetUniformLocation(shaderProgram, "ambientStrength");
-		glUniform3fv(ambiStrength, 1, &ambiMove); // should affect the ambient part of the lights
+		glUniform1f(ambiStrength, ambiMove); // should affect the ambient part of the lights
 
 		int specStrength = glGetUniformLocation(shaderProgram, "specularStrength");
-		glUniform3fv(specStrength, 1, &specMove); // should affect the specular part of the lights
+		glUniform1f(specStrength, specMove); // should affect the specular part of the lights
 
 		int shineStrength = glGetUniformLocation(shaderProgram, "shine");
-		glUniform3iv(shineStrength, 1, &shineMove); // shininess!
+		glUniform1i(shineStrength, shineMove); // shininess!
+
+		float diffStrength = glGetUniformLocation(shaderProgram, "diffNum");
+		glUniform1f(diffStrength, diffMove); // shininess!
 
 		// Messing around with persepctive, replace with screen width and height later to see?
 		//glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
@@ -437,7 +443,7 @@ int main() {
 		ImGui::DragFloat3("Light Position", (float*)&lightMove, 0.1f);
 		ImGui::ColorEdit3("LightColor", (float*)&lightColor);
 		ImGui::SliderFloat("Ambient K", (float*)&ambiMove, 0.0f, 1.0f);
-		ImGui::Text("Diffuse");
+		ImGui::SliderFloat("Diffuse", (float*)&diffMove, 0.0f, 1.0f);
 		ImGui::SliderFloat("Specular", (float*)&specMove, 0.0f, 1.0f);
 		ImGui::SliderInt("Shininess", (int*)&shineMove, 2, 1024);
 		ImGui::End();

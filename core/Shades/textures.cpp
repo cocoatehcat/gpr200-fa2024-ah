@@ -27,7 +27,7 @@ namespace Texts {
 
 	void Textures::checkData(int* x, int* y, unsigned char* dat, unsigned int *ID) {
 		if (dat) {
-			glBindTexture(GL_TEXTURE_2D, *ID);
+			//glBindTexture(GL_TEXTURE_2D, *ID);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, *x, *y, 0, GL_RGBA, GL_UNSIGNED_BYTE, dat);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
